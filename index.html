@@ -209,7 +209,7 @@
       <input type="password" id="password" placeholder="Enter your password">
       <span class="copy-password" data-tooltip="Copy password" onclick="copyPassword()">📋</span>
       <span class="copy-message" id="copy-message">Copied to clipboard</span>
-      <span class="toggle-password" data-tooltip="Show/Hide password" onclick="togglePassword()">Show</span>
+      <span class="toggle-password" data-tooltip="Show/Hide password" onclick="togglePassword()">🙈</span>
     </div>
     <div class="progress-bar">
       <div class="progress" id="progress"></div>
@@ -243,10 +243,10 @@
     function togglePassword() {
       if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
-        toggleText.textContent = 'Hide';
+        toggleText.textContent = '🙉';
       } else {
         passwordInput.type = 'password';
-        toggleText.textContent = 'Show';
+        toggleText.textContent = '🙈';
       }
     }
 
