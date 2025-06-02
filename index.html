@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Strength Detector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #e8f0fe;
+    }
+
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      color: #1e3a8a;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      font-weight: 400;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .toggle-password, .copy-password {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #4b5563;
+      transition: color 0.3s;
+    }
+
+    .toggle-password {
+      right: 10px;
+    }
+
+    .copy-password {
+      right: 60px;
+      font-size: 1.2rem;
+    }
+
+    .toggle-password:hover, .copy-password:hover {
+      color: #3b82f6;
+    }
+
+    .toggle-password::after, .copy-password::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e3a8a;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .toggle-password:hover::after, .copy-password:hover::after {
+      opacity: 1;
+    }
+
+    .copy-message {
+      position: absolute;
+      top: 50%;
+      right: 85px;
+      transform: translateY(-50%);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #10b981;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .copy-message.show {
+      opacity: 1;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .progress {
+      height: 100%;
+      width: 0;
+      transition: width 0.3s, background-color 0.3s;
+    }
+
+    .weak { background: #f87171; }
+    .medium { background: #facc15; }
+    .strong { background: #10b981; }
+
+    .criteria {
+      list-style: none;
+      margin-bottom: 1.5rem;
+    }
+
+    .criteria li {
+      display: flex;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: #4b5563;
+      margin-bottom: 0.5rem;
+    }
+
+    .criteria li::before {
+      content: '○';
+      margin-right: 8px;
+      color: #d1d5db;
+      font-size: 1rem;
+    }
+
+    .criteria li.checked::before {
+      content: '✔';
+      color: #10b981;
+      font-weight: bold;
+    }
+
+    .clear-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .clear-btn:hover {
+      background: #2563eb;
+    }
+
+    .developer {
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 400;
+      color: #4b5563;
+      margin-top: 1rem;
+    }
+
+    .developer a {
+      color: #3b82f6;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .developer a:hover {
+      color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Password Strength Detector</h1>
+    <div class="input-group">
+      <input type="password" id="password" placeholder="Enter your password">
+      <span class="copy-password" data-tooltip="Copy password" onclick="copyPassword()">📋</span>
+      <span class="copy-message" id="copy-message">Copied to clipboard</span>
+      <span class="toggle-password" data-tooltip="Show/Hide password" onclick="togglePassword()">Show</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress" id="progress"></div>
+    </div>
+    <ul class="criteria" id="criteria">
+      <li id="length">At least 8 characters</li>
+      <li id="lowercase">At least one lowercase letter</li>
+      <li id="number">At least one number</li>
+      <li id="uppercase">At least one uppercase letter</li>
+      <li id="special">At least one special character</li>
+    </ul>
+    <button class="clear-btn" onclick="clearInput()">Clear</button>
+    <div class="developer">
+      Developed by <a href="https://github.com/royavi21" target="_blank">Avijit Roy</a>
+    </div>
+  </div>
+
+  <script>
+    const passwordInput = document.getElementById('password');
+    const progress = document.getElementById('progress');
+    const toggleText = document.querySelector('.toggle-password');
+    const copyMessage = document.getElementById('copy-message');
+    const criteria = {
+      length: document.getElementById('length'),
+      uppercase: document.getElementById('uppercase'),
+      lowercase: document.getElementById('lowercase'),
+      number: document.getElementById('number'),
+      special: document.getElementById('special')
+    };
+
+    function togglePassword() {
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleText.textContent = 'Hide';
+      } else {
+        passwordInput.type = 'password';
+        toggleText.textContent = 'Show';
+      }
+    }
+
+    function copyPassword() {
+      const password = passwordInput.value;
+      if (password) {
+        navigator.clipboard.writeText(password)
+          .then(() => {
+            copyMessage.classList.add('show');
+            setTimeout(() => copyMessage.classList.remove('show'), 2000);
+          })
+          .catch(() => alert('Failed to copy password.'));
+      } else {
+        alert('No password to copy.');
+      }
+    }
+
+    function checkPassword() {
+      const password = passwordInput.value;
+
+      // Check criteria
+      const checks = {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /[0-9]/.test(password),
+        special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+      };
+
+      // Update checklist
+      for (const [key, value] of Object.entries(checks)) {
+        criteria[key].classList.toggle('checked', value);
+      }
+
+      // Calculate strength
+      const strength = Object.values(checks).filter(Boolean).length;
+      const width = (strength / 5) * 100;
+      progress.style.width = `${width}%`;
+
+      // Update progress bar color
+      progress.className = 'progress';
+      if (strength <= 2) {
+        progress.classList.add('weak');
+      } else if (strength <= 4) {
+        progress.classList.add('medium');
+      } else {
+        progress.classList.add('strong');
+      }
+    }
+
+    function clearInput() {
+      passwordInput.value = '';
+      progress.style.width = '0%';
+      progress.className = 'progress';
+      for (const key in criteria) {
+        criteria[key].classList.remove('checked');
+      }
+      passwordInput.type = 'password';
+      toggleText.textContent = 'Show';
+      copyMessage.classList.remove('show');
+    }
+
+    passwordInput.addEventListener('input', checkPassword);
+  </script>
+</body>
+</html>
